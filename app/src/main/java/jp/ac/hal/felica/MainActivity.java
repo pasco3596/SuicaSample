@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         SQLiteDatabase database = openHelper.getWritableDatabase();
 
         database.close();
-        Button bt = (Button)findViewById(R.id.button);
+        Button bt = (Button) findViewById(R.id.button);
         bt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 MySQLiteOenHelper openHelper = new MySQLiteOenHelper(MainActivity.this);
                 SQLiteDatabase database = openHelper.getWritableDatabase();
                 DAO dao = new DAO(database);
-                Log.e("select",dao.select());
+                Log.e("select", dao.select());
 
             }
         });
@@ -110,54 +110,33 @@ public class MainActivity extends AppCompatActivity {
                 Suica suica = Suica.parse(res, 13 + i * 16);
                 list.add(suica);
             }
-            String str = "";
-            Collections.reverse(list);
 
+            //新着順なので時系列順に
+            Collections.reverse(list);
 
             MySQLiteOenHelper openHelper = new MySQLiteOenHelper(this);
             SQLiteDatabase database = openHelper.getWritableDatabase();
             DAO dao = new DAO(database);
 
-
+            String str = "";
             for (int i = 0; i < list.size(); i++) {
                 Suica s = list.get(i);
 
-
-                if (s.kind.equals("JR")) {
-
-                    int reasion = s.reasion;
+                ///チャージの履歴のとるからわかんにくい
+                if (s.kind.equals("JR") || s.kind.equals("公営/私鉄")) {
+                    int inAreaCode = s.inAreaCode;
+                    int outAreaCode = s.outAreaCode;
                     int inLineCode = s.inLine;
                     int inStationcede = s.inStation;
                     int outLineCode = s.outLine;
                     int outStationCode = s.outStation;
 
-                    String inStation = dao.getStation(reasion,inLineCode,inStationcede);
-                    String outStation = dao.getStation(reasion,outLineCode,outStationCode);
-
-                    Log.e("inLine",String.valueOf(inLineCode));
-                    Log.e("inStationCode",String.valueOf(inStationcede));
-                    Log.e("inStation",inStation);
-                    Log.e("outStation",outStation);
-
-                } else if (s.kind.equals("公営/私鉄")) {
-
-                    int reasion = s.reasion;
-                    int inLineCode = s.inLine;
-                    int inStationcede = s.inStation;
-                    int outLineCode = s.outLine;
-                    int outStationCode = s.outStation;
-
-                    String inStation = dao.getStation(reasion,inLineCode,inStationcede);
-                    String outStation = dao.getStation(reasion,outLineCode,outStationCode);
-                    Log.e("inStation",inStation);
-                    Log.e("outStation",outStation);
-
+                    String inStation = dao.getStation(inAreaCode, inLineCode, inStationcede);
+                    String outStation = dao.getStation(outAreaCode, outLineCode, outStationCode);
+                    str += s.getJoko(inStation, outStation);
                 }
-                str += s.toString();
             }
-
             database.close();
-
             tv.setText(str);
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,10 +158,12 @@ public class MainActivity extends AppCompatActivity {
         bout.write(0x0f);        // 履歴のサービスコード下位バイト
         bout.write(0x09);        // 履歴のサービスコード上位バイト
         bout.write(size);        // ブロック数
+
         for (int i = 0; i < size; i++) {
             bout.write(0x80);
             bout.write(i);
         }
+
         byte[] msg = bout.toByteArray();
         msg[0] = (byte) msg.length;
 

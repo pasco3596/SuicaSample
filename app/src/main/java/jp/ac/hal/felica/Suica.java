@@ -21,6 +21,8 @@ public class Suica {
     public int inStation;
     public int outLine;
     public int outStation;
+    public int inAreaCode;
+    public int outAreaCode;
 
 
     private void init(byte[] res, int off) {
@@ -35,7 +37,7 @@ public class Suica {
         this.seqNo = toInt(res, off, 12, 13, 14);
         this.remain = toInt(res, off, 11, 10);
 
-        this.reasion = res[off+15];
+        this.reasion = toInt(res,off , 15);
 
         if (isBuppan(this.procId)) {
             this.kind = "物販";
@@ -44,31 +46,33 @@ public class Suica {
 
 //            6-7 : 出線区
 //            8-9 : 出駅順
-            Log.e("seqNo",String.valueOf(seqNo));
-            Log.e("出線区",String.format("%02x",new byte[]{res[off+6],res[off+7]}));
-            Log.e("出駅順",String.format("%02x",new byte[]{res[off+8],res[off+9]}));
+//            Log.e("seqNo", String.valueOf(seqNo));
+//            Log.e("出線区", String.format("%02x", new byte[]{res[off + 6], res[off + 7]}));
+//            Log.e("出駅順", String.format("%02x", new byte[]{res[off + 8], res[off + 9]}));
+
 
 
         } else {
             this.kind = res[off + 6] < 0x80 ? "JR" : "公営/私鉄";
-//            6 : 入線区
-//            7 : 入駅順
-//            8 : 出線区
-//            9 : 出駅順
-            Log.e("seqNo",String.valueOf(seqNo));
-            Log.e("入線区",String.format("%02x",res[off+6]));
-            Log.e("入場順",String.format("%02x",res[off+7]));
-            Log.e("入線区",String.format("%d",res[off+6]));
-            Log.e("入場順",String.format("%d",res[off+7]));
-            Log.e("出線区",String.format("%02x",res[off+8]));
-            Log.e("出駅順",String.format("%02x",res[off+9]));
-            Log.e("------","------------");
-            this.inLine = Integer.parseInt(String.format("%d",res[off+6]));
-            this.inStation = Integer.parseInt(String.format("%d",res[off+7]));
-            this.outLine = Integer.parseInt(String.format("%d",res[off+8]));
-            this.outStation = Integer.parseInt(String.format("%d",res[off+9]));
+            //6 : 入線区
+            //7 : 入駅順
+            //8 : 出線区
+            //9 : 出駅順
+            this.inLine = Integer.parseInt(String.format("%02x", res[off + 6]), 16);
+            this.inStation = Integer.parseInt(String.format("%02x", res[off + 7]), 16);
+            this.outLine = Integer.parseInt(String.format("%02x", res[off + 8]), 16);
+            this.outStation = Integer.parseInt(String.format("%02x", res[off + 9]), 16);
 
+            String b = String.format("%08d",Integer.parseInt(Integer.toBinaryString(reasion)));
 
+            String inStr = b.substring(0,2);
+            String outStr = b.substring(2,4);
+
+            int in = Integer.parseInt(inStr,2);
+            int out = Integer.parseInt(outStr,2);
+
+            this.inAreaCode = in;
+            this.outAreaCode = out;
         }
 
     }
@@ -101,11 +105,22 @@ public class Suica {
     @Override
     public String toString() {
         String str = seqNo
-                +","+TERM_MAP.get(termId)
-                +","+ PROC_MAP.get(procId)
-                +","+kind
-                +","+year+"/"+month+"/"+day
-                +",残："+remain+"円\n";
+                + "," + TERM_MAP.get(termId)
+                + "," + PROC_MAP.get(procId)
+                + "," + kind
+                + "," + year + "/" + month + "/" + day
+                + ",残：" + remain + "円\n";
+        return str;
+    }
+
+    public String getJoko(String in, String out) {
+        String str = seqNo
+                + ",\n" + TERM_MAP.get(termId)
+                + "," + PROC_MAP.get(procId)
+                + "," + in
+                + "→" + out
+                + "," + year + "/" + month + "/" + day
+                + ",残：" + remain + "円\n";
         return str;
     }
 

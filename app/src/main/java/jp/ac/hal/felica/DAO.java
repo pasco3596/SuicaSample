@@ -21,7 +21,7 @@ public class DAO {
         try {
             Cursor c = database.rawQuery("select * from stationcode where areacode = ? and linecode = ? and stationcode = ?",
                     new String[]{String.valueOf(areaCode), String.valueOf(lineCode), String.valueOf(stationCode)});
-            if (c.isFirst()) {
+            if (c.moveToFirst()) {
                 station = c.getString(c.getColumnIndex("StationName"));
             }
             c.close();
