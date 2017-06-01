@@ -111,14 +111,13 @@ public class MainActivity extends AppCompatActivity {
                 list.add(suica);
             }
 
-            //新着順なので時系列順に
+            String str = "";
             Collections.reverse(list);
 
             MySQLiteOenHelper openHelper = new MySQLiteOenHelper(this);
             SQLiteDatabase database = openHelper.getWritableDatabase();
             DAO dao = new DAO(database);
 
-            String str = "";
             for (int i = 0; i < list.size(); i++) {
                 Suica s = list.get(i);
 
@@ -133,10 +132,14 @@ public class MainActivity extends AppCompatActivity {
 
                     String inStation = dao.getStation(inAreaCode, inLineCode, inStationcede);
                     String outStation = dao.getStation(outAreaCode, outLineCode, outStationCode);
+
+                    // あとでリストに
                     str += s.getJoko(inStation, outStation);
                 }
             }
+
             database.close();
+
             tv.setText(str);
         } catch (Exception e) {
             e.printStackTrace();
@@ -158,12 +161,10 @@ public class MainActivity extends AppCompatActivity {
         bout.write(0x0f);        // 履歴のサービスコード下位バイト
         bout.write(0x09);        // 履歴のサービスコード上位バイト
         bout.write(size);        // ブロック数
-
         for (int i = 0; i < size; i++) {
             bout.write(0x80);
             bout.write(i);
         }
-
         byte[] msg = bout.toByteArray();
         msg[0] = (byte) msg.length;
 

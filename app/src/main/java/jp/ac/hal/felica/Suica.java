@@ -53,7 +53,9 @@ public class Suica {
 
 
         } else {
+
             this.kind = res[off + 6] < 0x80 ? "JR" : "公営/私鉄";
+
             //6 : 入線区
             //7 : 入駅順
             //8 : 出線区
@@ -63,8 +65,9 @@ public class Suica {
             this.outLine = Integer.parseInt(String.format("%02x", res[off + 8]), 16);
             this.outStation = Integer.parseInt(String.format("%02x", res[off + 9]), 16);
 
+            // エリアコードが8ビットのうち上位4ビットで判断
+            // XXYY    XX が乗車駅、YYが降車駅のエリアコード
             String b = String.format("%08d",Integer.parseInt(Integer.toBinaryString(reasion)));
-
             String inStr = b.substring(0,2);
             String outStr = b.substring(2,4);
 
